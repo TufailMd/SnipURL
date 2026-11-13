@@ -5,16 +5,19 @@ export const saveShortUrl = async (shortUrl, longUrl, userId) => {
     const newUrl = new urlSchema({
       full_url: longUrl,
       short_url: shortUrl,
+      ...(userId && { user: userId }),
     });
-    if (userId) {
-      newUrl.user_id = userId;
-    }
+
     await newUrl.save();
+    return newUrl;
   } catch (error) {
-    if (error.code == 11000) {
-      throw new ConflictError("Short URL already exists");
+    if (error.code === 11000) {
+      const err = new Error("Short URL already exists");
+      err.statusCode = 409;
+      throw err;
     }
-    throw new Error(error);
+
+    throw error;
   }
 };
 
@@ -22,5 +25,6 @@ export const getShortUrl = async (shortUrl) => {
   return await urlSchema.findOneAndUpdate(
     { short_url: shortUrl },
     { $inc: { clicks: 1 } },
+    { new: true },
   );
 };
