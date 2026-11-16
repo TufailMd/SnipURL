@@ -3,6 +3,7 @@ import {
   findUserByUsernameOrEmail,
   findUserByEmail,
   createUser,
+  findUserById,
 } from "../dao/user.dao.js";
 import { signToken, verifyToken } from "../utils/helper.js";
 
@@ -25,53 +26,60 @@ export const registerUser = async (userData) => {
     password: hashedPassword,
   });
 
-  const accessToken = await signToken({ id: user._id }, "15m");
-  const refreshToken = await signToken({ id: user._id }, "7d");
+  const accessToken = signToken({ id: user._id, type: "access" }, "15m");
 
-  return {
-    user,
-    accessToken,
-    refreshToken,
-  };
+  const refreshToken = signToken({ id: user._id, type: "refresh" }, "7d");
+
+  return { user, accessToken, refreshToken };
 };
 
 export const loginUser = async (userData) => {
   const { email, password } = userData;
 
   const user = await findUserByEmail(email);
+
   if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
+    const error = new Error("Invalid email or password");
+    error.statusCode = 401;
     throw error;
   }
 
   const isMatch = await bcryptjs.compare(password, user.password);
 
   if (!isMatch) {
-    const error = new Error("Invalid credentials");
+    const error = new Error("Invalid email or password");
     error.statusCode = 401;
     throw error;
   }
 
-  const accessToken = await signToken({ id: user._id }, "15m");
-  const refreshToken = await signToken({ id: user._id }, "7d");
+  const accessToken = signToken({ id: user._id, type: "access" }, "15m");
 
-  return {
-    user,
-    accessToken,
-    refreshToken,
-  };
+  const refreshToken = signToken({ id: user._id, type: "refresh" }, "7d");
+
+  return { user, accessToken, refreshToken };
 };
 
+// REFRESH TOKEN
 export const refreshUserTokens = async (token) => {
   const decoded = verifyToken(token);
 
-  const accessToken = await signToken({ id: decoded.id }, "15m");
+  if (decoded.type !== "refresh") {
+    const error = new Error("Invalid refresh token");
+    error.statusCode = 401;
+    throw error;
+  }
 
-  const refreshToken = await signToken({ id: decoded.id }, "7d");
+  const user = await findUserById(decoded.id);
 
-  return {
-    accessToken,
-    refreshToken,
-  };
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const accessToken = signToken({ id: user._id, type: "access" }, "15m");
+
+  const refreshToken = signToken({ id: user._id, type: "refresh" }, "7d");
+
+  return { accessToken, refreshToken };
 };

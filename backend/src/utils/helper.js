@@ -8,14 +8,10 @@ export const generateNanoId = (length) => {
 
 export const signToken = (payload, expiresIn) => {
   return jwt.sign(payload, config.JWT_SECRET, {
-    expiresIn: expiresIn,
+    expiresIn,
   });
 };
+
 export const verifyToken = (token) => {
-  try {
-    const decoded = jwt.verify(token, config.JWT_SECRET);
-    return decoded;
-  } catch (error) {
-    throw new Error("Invalid token");
-  }
+  return jwt.verify(token, config.JWT_SECRET);
 };

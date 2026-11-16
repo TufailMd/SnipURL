@@ -8,6 +8,7 @@ import authRouter from "./src/routes/auth.routes.js";
 
 import { redirectFromShortUrl } from "./src/controller/short_url.controller.js";
 import errorHandler from "./src/utils/error.middleware.js";
+import { attachUser } from "./src/utils/attachUser.js";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(attachUser);
 
 // Routes
 app.use("/api/auth", authRouter);

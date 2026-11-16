@@ -5,8 +5,11 @@ export const saveShortUrl = async (shortUrl, longUrl, userId) => {
     const newUrl = new urlSchema({
       full_url: longUrl,
       short_url: shortUrl,
-      ...(userId && { user: userId }),
     });
+
+    if (userId) {
+      newUrl.user = userId;
+    }
 
     await newUrl.save();
     return newUrl;
@@ -27,4 +30,8 @@ export const getShortUrl = async (shortUrl) => {
     { $inc: { clicks: 1 } },
     { new: true },
   );
+};
+
+export const getCustomShortUrl = async (slug) => {
+  return await urlSchema.findOneAndUpdate({ short_url: slug });
 };

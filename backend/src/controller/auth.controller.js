@@ -1,17 +1,23 @@
 import tryCatchWrapper from "../utils/tryCatchWrapper.js";
+
 import {
   registerUser,
   loginUser,
   refreshUserTokens,
 } from "../services/auth.service.js";
 
+import { sendResponse } from "../utils/responseHandler.js";
+
+const refreshCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  path: "/",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 const setRefreshTokenCookie = (res, refreshToken) => {
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 };
 
 // REGISTER
@@ -26,8 +32,7 @@ export const register = tryCatchWrapper(async (req, res) => {
 
   setRefreshTokenCookie(res, refreshToken);
 
-  return res.status(201).json({
-    message: "User registered successfully",
+  return sendResponse(res, 201, "User registered successfully", {
     user: {
       username: user.username,
       email: user.email,
@@ -47,8 +52,7 @@ export const login = tryCatchWrapper(async (req, res) => {
 
   setRefreshTokenCookie(res, refreshToken);
 
-  return res.status(200).json({
-    message: "User logged in successfully",
+  return sendResponse(res, 200, "User logged in successfully", {
     user: {
       username: user.username,
       email: user.email,
@@ -63,6 +67,7 @@ export const refreshToken = tryCatchWrapper(async (req, res) => {
 
   if (!token) {
     return res.status(401).json({
+      success: false,
       message: "Refresh token not found",
     });
   }
@@ -71,8 +76,22 @@ export const refreshToken = tryCatchWrapper(async (req, res) => {
 
   setRefreshTokenCookie(res, refreshToken);
 
-  return res.status(200).json({
-    message: "Access token refreshed successfully",
+  return sendResponse(res, 200, "Access token refreshed successfully", {
     accessToken,
   });
+});
+
+export const logout = tryCatchWrapper(async (req, res) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
+
+  return sendResponse(res, 200, "Logout successful");
+});
+
+export const getCurrentUser = tryCatchWrapper(async (req, res) => {
+  res.status(200).json({ user: req.user });
 });

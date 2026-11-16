@@ -11,17 +11,22 @@ export const authMiddleware = tryCatchWrapper(async (req, res, next) => {
     });
   }
 
-  const decoded = verifyToken(token);
+  try {
+    const decoded = verifyToken(token);
 
-  const user = await findUserById(decoded.id);
+    const user = await findUserById(decoded.id);
 
-  if (!user) {
-    const error = new Error("User not found");
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    req.user = user;
+
+    next();
+  } catch (error) {
     error.statusCode = 401;
-    throw error;
+    next(error);
   }
-
-  req.user = user;
-
-  next();
 });
