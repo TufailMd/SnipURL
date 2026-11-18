@@ -11,7 +11,7 @@ import { sendResponse } from "../utils/responseHandler.js";
 const refreshCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: "lax",
   path: "/",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };

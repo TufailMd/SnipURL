@@ -2,7 +2,7 @@ import React from 'react'
 import ShortUrlForm from '../components/UrlForm'
 import { Link } from 'lucide-react'
 
-const Home = () => {
+const HomePage = () => {
     return (
 
         <main className="min-h-screen bg-gray-100 flex flex-col items-center justify-around" >
@@ -28,4 +28,4 @@ const Home = () => {
     )
 }
 
-export default Home
+export default HomePage

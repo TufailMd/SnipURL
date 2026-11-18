@@ -7,7 +7,7 @@ export const authMiddleware = tryCatchWrapper(async (req, res, next) => {
 
   if (!token) {
     return res.status(401).json({
-      message: "token not found",
+      message: "Access token not found",
     });
   }
 
