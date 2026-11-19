@@ -48,7 +48,7 @@ function Avatar({ user, small = false }) {
 }
 
 // Mobile Bottom Navigation
-export function MobileBottomNavigation({ onCreate }) {
+export function MobileBottomNavigation({ onCreate, activePage = "Overview" }) {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 flex h-17 items-center justify-around border-t border-[#e5dcce] bg-[#fff8f6]/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
@@ -56,19 +56,19 @@ export function MobileBottomNavigation({ onCreate }) {
     >
       <Link
         to="/dashboard"
-        className="grid place-items-center gap-1 text-xs font-bold text-[#ae2900]"
+        className={`grid place-items-center gap-1 text-xs ${activePage === "Overview" ? "font-bold text-[#ae2900]" : "text-[#765d56]"}`}
       >
         <LayoutDashboard size={19} />
         Overview
       </Link>
 
-      <a
-        href="#recent-links"
-        className="grid place-items-center gap-1 text-xs text-[#765d56]"
+      <Link
+        to="/dashboard/links"
+        className={`grid place-items-center gap-1 text-xs ${activePage === "My Links" ? "font-bold text-[#ae2900]" : "text-[#765d56]"}`}
       >
         <LinkIcon size={19} />
         My Links
-      </a>
+      </Link>
 
       <button
         onClick={onCreate}
@@ -98,7 +98,7 @@ export function MobileBottomNavigation({ onCreate }) {
 }
 
 // Dashboard Layout
-export default function DashboardLayout({ children, onCreate }) {
+export default function DashboardLayout({ children, onCreate, activePage = "Overview" }) {
   const user = useSelector((state) => state.auth.user);
 
   const [open, setOpen] = useState(false);
@@ -126,7 +126,7 @@ export default function DashboardLayout({ children, onCreate }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-60 flex w-[256px] flex-col justify-between border-r border-[#e5dcce] bg-[#f3ebdd] px-4 py-6 transition-transform md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-40 flex w-[256px] flex-col justify-between border-r border-[#e5dcce] bg-[#f3ebdd] px-4 py-6 transition-transform md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         <div>
@@ -147,12 +147,12 @@ export default function DashboardLayout({ children, onCreate }) {
             className="mt-10 space-y-1"
             aria-label="Dashboard navigation"
           >
-            {items.map(([name, Icon, path], i) => (
+            {items.map(([name, Icon, path]) => (
               <Link
                 key={name}
                 to={path}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm ${i === 0
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm ${name === activePage
                   ? "bg-[#ae2900] font-bold text-white shadow-lg shadow-[#ae2900]/20"
                   : "font-medium text-[#5b403a] hover:bg-[#ffe9e2]"
                   }`}
@@ -230,7 +230,7 @@ export default function DashboardLayout({ children, onCreate }) {
       </main>
 
       {/* Mobile Navigation */}
-      <MobileBottomNavigation onCreate={onCreate} />
+      <MobileBottomNavigation onCreate={onCreate} activePage={activePage} />
 
     </div>
   );
