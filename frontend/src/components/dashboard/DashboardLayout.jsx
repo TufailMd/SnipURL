@@ -78,13 +78,13 @@ export function MobileBottomNavigation({ onCreate, activePage = "Overview" }) {
         <Plus size={24} />
       </button>
 
-      <a
-        href="#analytics-overview"
-        className="grid place-items-center gap-1 text-xs text-[#765d56]"
+      <Link
+        to="/dashboard/analytics"
+        className={`grid place-items-center gap-1 text-xs ${activePage === "Analytics" ? "font-bold text-[#ae2900]" : "text-[#765d56]"}`}
       >
         <ChartNoAxesCombined size={19} />
         Analytics
-      </a>
+      </Link>
 
       <a
         href="#profile"
