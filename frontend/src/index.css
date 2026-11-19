@@ -1,1 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Space Grotesk", "Arial", sans-serif;
+  --font-body: "DM Sans", "Arial", sans-serif;
+  --font-editor: "EB Garamond", Georgia, serif;
+}
+
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #fff8f6; }

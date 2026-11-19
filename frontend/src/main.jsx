@@ -1,11 +1,7 @@
-
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { queryClient } from "./queryClient";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 import {
   RouterProvider,
