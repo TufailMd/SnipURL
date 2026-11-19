@@ -8,7 +8,11 @@ import {
 import { signToken, verifyToken } from "../utils/helper.js";
 
 export const registerUser = async (userData) => {
-  const { username, email, password } = userData;
+  const username = userData.username?.trim();
+  const email = userData.email?.trim().toLowerCase();
+  const { password } = userData;
+
+  validateRegistration({ username, email, password });
 
   const existingUser = await findUserByUsernameOrEmail(username, email);
 
@@ -34,7 +38,14 @@ export const registerUser = async (userData) => {
 };
 
 export const loginUser = async (userData) => {
-  const { email, password } = userData;
+  const email = userData.email?.trim().toLowerCase();
+  const { password } = userData;
+
+  if (!isValidEmail(email) || typeof password !== "string" || !password) {
+    const error = new Error("A valid email and password are required");
+    error.statusCode = 400;
+    throw error;
+  }
 
   const user = await findUserByEmail(email);
 
@@ -82,4 +93,27 @@ export const refreshUserTokens = async (token) => {
   const refreshToken = signToken({ id: user._id, type: "refresh" }, "7d");
 
   return { accessToken, refreshToken };
+};
+
+const isValidEmail = (email) =>
+  typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const validateRegistration = ({ username, email, password }) => {
+  if (typeof username !== "string" || username.length < 2 || username.length > 80) {
+    const error = new Error("Username must be between 2 and 80 characters");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!isValidEmail(email)) {
+    const error = new Error("A valid email address is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (typeof password !== "string" || password.length < 8) {
+    const error = new Error("Password must be at least 8 characters");
+    error.statusCode = 400;
+    throw error;
+  }
 };

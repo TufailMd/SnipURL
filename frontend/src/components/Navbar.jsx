@@ -17,7 +17,7 @@ const navLinks = [
     { name: "Overview", icon: LayoutDashboard, path: "/dashboard" },
     { name: "My Links", icon: LinkIcon, path: "/dashboard/links" },
     { name: "Analytics", icon: ChartNoAxesCombined, path: "/dashboard/analytics" },
-    { name: "Settings", icon: Settings, path: "/dashboard/settings" },
+    // { name: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];
 
 export default function Navbar({

@@ -33,5 +33,5 @@ export const getShortUrl = async (shortUrl) => {
 };
 
 export const getCustomShortUrl = async (slug) => {
-  return await urlSchema.findOneAndUpdate({ short_url: slug });
+  return await urlSchema.findOne({ short_url: slug });
 };

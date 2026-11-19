@@ -93,5 +93,6 @@ export const logout = tryCatchWrapper(async (req, res) => {
 });
 
 export const getCurrentUser = tryCatchWrapper(async (req, res) => {
-  res.status(200).json({ user: req.user });
+  const { _id, username, email, avatar } = req.user;
+  res.status(200).json({ user: { _id, username, email, avatar } });
 });
