@@ -1,7 +1,7 @@
+
 import { createRoot } from "react-dom/client";
-
 import "./index.css";
-
+import { queryClient } from "./queryClient";
 import {
   QueryClient,
   QueryClientProvider,
@@ -17,18 +17,19 @@ import { routeTree } from "./routing/routeTree.js";
 import { store } from "./app/store.js";
 import { Provider } from "react-redux";
 
-export const queryClient = new QueryClient();
-
 const router = createRouter({
   routeTree,
-
   context: {
     queryClient,
     store,
   },
 });
 
-createRoot(document.getElementById("root")).render(
+const rootElement = document.getElementById("root");
+
+const root = createRoot(rootElement);
+
+root.render(
   <Provider store={store}>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />

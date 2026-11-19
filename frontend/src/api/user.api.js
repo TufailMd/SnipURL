@@ -41,3 +41,8 @@ export const logoutUser = async () => {
   await axiosInstance.post("/api/auth/logout");
   setAccessToken(null);
 };
+
+export const getAllUserUrls = async () => {
+  const { data } = await axiosInstance.post("/api/user/urls");
+  return data;
+};

@@ -1,15 +1,21 @@
 
 import { useState } from "react";
-import { Link2, Copy, Check, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { createShortUrl } from "../api/shortUrl.api";
+import { useSelector } from "react-redux";
+import { queryClient } from "../queryClient";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const UrlForm = () => {
 
-const ShortUrlForm = () => {
-    const [url, setUrl] = useState("");
+    const [url, setUrl] = useState("https://www.google.com");
     const [shortUrl, setShortUrl] = useState("");
-    const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
     const [error, setError] = useState("");
+    const [customSlug, setCustomSlug] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+
+    const { isAuthenticated } = useSelector(
+        (state) => state.auth
+    );
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,149 +25,137 @@ const ShortUrlForm = () => {
         setCopied(false);
 
         try {
-            const parsedUrl = new URL(url);
+            setIsLoading(true);
 
-            if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-                throw new Error("Please enter a valid HTTP or HTTPS URL.");
-            }
+            const generatedUrl = await createShortUrl(
+                url,
+                isAuthenticated ? customSlug : ""
+            );
 
-            setLoading(true);
-
-            const response = await fetch(`${API_URL}/api/create`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ url }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Failed to generate short URL");
-            }
-
-            const code = data.shortUrl;
-
-            if (!code) {
-                throw new Error("Short URL was not returned by the server.");
-            }
-
-            const generatedUrl = code.startsWith("http")
-                ? code
-                : `${API_URL}/${code}`;
-
+            console.log("Generated Short URL:", generatedUrl);
             setShortUrl(generatedUrl);
 
+            await queryClient.invalidateQueries({
+                queryKey: ["userUrls"]
+            });
+
         } catch (err) {
-            setError(err.message || "Something went wrong.");
+            setError(
+                err.message || "Failed to generate short URL"
+            );
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(shortUrl);
+
             setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+
+            setTimeout(() => {
+                setCopied(false);
+            }, 2000);
+
         } catch {
-            setError("Unable to copy URL. Please copy it manually.");
+            setError("Unable to copy URL");
         }
     };
 
     return (
-        <>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
+
+            <form onSubmit={handleSubmit}>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Enter your long URL
+                    <label
+                        htmlFor="url"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Enter your URL
                     </label>
 
-                    <div className="relative">
-                        <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                        type="url"
+                        id="url"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="https://example.com"
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                {isAuthenticated && (
+                    <div className="mt-4">
+                        <label
+                            htmlFor="customSlug"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Custom URL (optional)
+                        </label>
 
                         <input
-                            type="url"
-                            value={url}
-                            onChange={(e) => setUrl(e.target.value)}
-                            placeholder="https://example.com/your-long-url"
-                            required
-                            className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-gray-800"
+                            type="text"
+                            id="customSlug"
+                            value={customSlug}
+                            onChange={(e) => setCustomSlug(e.target.value)}
+                            placeholder="Enter custom slug"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
                         />
                     </div>
-                </div>
+                )}
 
                 <button
                     type="submit"
-                    disabled={loading || !url.trim()}
-                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold transition"
+                    disabled={isLoading || !url.trim()}
+                    className="w-full mt-4 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:opacity-50"
                 >
-                    {loading ? (
-                        <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Generating...
-                        </>
-                    ) : (
-                        <>
-                            Shorten URL
-                            <ArrowRight className="w-5 h-5" />
-                        </>
-                    )}
+                    {isLoading ? "Generating..." : "Shorten URL"}
                 </button>
+
             </form>
 
             {error && (
-                <div className="mt-5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+                <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
                     {error}
                 </div>
             )}
 
             {shortUrl && (
-                <div className="mt-6 p-5 rounded-xl bg-indigo-50 border border-indigo-200">
+                <div className="mt-6">
 
-                    <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="w-5 h-5 text-indigo-600" />
-                        <h3 className="font-semibold text-gray-800">
-                            Your short URL is ready!
-                        </h3>
-                    </div>
+                    <h2 className="text-lg font-semibold mb-2">
+                        Your shortened URL:
+                    </h2>
 
-                    <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-indigo-200">
-                        <a
-                            href={shortUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 text-indigo-600 font-medium truncate"
-                        >
-                            {shortUrl}
-                        </a>
+                    <div className="flex items-center">
+
+                        <input
+                            type="text"
+                            readOnly
+                            value={shortUrl}
+                            className="flex-1 p-2 border border-gray-300 rounded-l-md bg-gray-50"
+                        />
 
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="shrink-0 p-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition"
-                            title="Copy short URL"
+                            className={`px-4 py-2 rounded-r-md transition-colors duration-200 ${copied
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-200 hover:bg-gray-300"
+                                }`}
                         >
-                            {copied ? (
-                                <Check className="w-5 h-5" />
-                            ) : (
-                                <Copy className="w-5 h-5" />
-                            )}
+                            {copied ? "Copied!" : "Copy"}
                         </button>
-                    </div>
 
-                    <p className="text-sm text-green-700 mt-3">
-                        {copied
-                            ? "Copied to clipboard!"
-                            : "Your link is ready to share."}
-                    </p>
+                    </div>
                 </div>
             )}
 
-        </>
+        </div>
     );
 };
 
-export default ShortUrlForm;
+export default UrlForm;

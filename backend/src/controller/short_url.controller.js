@@ -13,7 +13,7 @@ export const createShortUrl = tryCatchWrapper(async (req, res, next) => {
   const shortUrl = req.user
     ? await createShortUrlWithUser(data.url, data.slug, req.user._id)
     : await createShortUrlWithoutUser(data.url);
-  res.send(process.env.APP_URL + shortUrl);
+  res.send(process.env.APP_URL + "/" + shortUrl);
 });
 
 // export const createCustomShortUrl = tryCatchWrapper(async (req, res, next) => {
