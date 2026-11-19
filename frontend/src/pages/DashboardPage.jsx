@@ -1,36 +1,23 @@
-import React from 'react'
-import ShortUrlForm from '../components/UrlForm'
-import { Link } from 'lucide-react'
-import UserUrl from '../components/UserUrl'
-import Navbar from '../components/Navbar'
+import { useRef } from "react";
+import { useSelector } from "react-redux";
+import DashboardLayout from "../components/dashboard/DashboardLayout";
+import QuickCreateLink from "../components/dashboard/QuickCreateLink";
+import { AnalyticsOverview, DashboardData, Metrics, RecentLinks, WelcomeSection } from "../components/dashboard/DashboardContent";
 
-function DashboardPage() {
-    return (
-        <main className="min-h-screen bg-gray-100 py-24 lg:pl-65" >
-            <Navbar />
-            <div className="flex flex-col items-center justify-around px-5">
-                <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                    <div className="text-center mb-8">
-                        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-indigo-100 flex items-center justify-center">
-                            <Link className="w-7 h-7 text-indigo-600" />
-                        </div>
+export default function DashboardPage() {
+  const quickCreateRef = useRef(null);
+  const user = useSelector(state => state.auth.user);
+  const focusQuickCreate = () => quickCreateRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
 
-                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                            Shorten Your URL
-                        </h2>
-
-                        <p className="text-gray-500 mt-2">
-                            Make your long links short, simple and shareable.
-                        </p>
-                    </div>
-
-                    < h1 className="text-2xl font-bold text-center mb-6" > URL Shortener</h1 >
-                    <ShortUrlForm />
-                    <UserUrl />
-                </div >
-            </div>
-        </main >
-    )
+  return <DashboardLayout onCreate={focusQuickCreate}>
+    <div className="mx-auto max-w-360 space-y-7 px-4 py-7 sm:px-6 lg:px-8">
+      <WelcomeSection user={user} />
+      <QuickCreateLink formRef={quickCreateRef} />
+      <DashboardData>{({ urls, loading, error }) => <>
+        <Metrics urls={urls} loading={loading} />
+        <AnalyticsOverview urls={urls} loading={loading} />
+        <RecentLinks urls={urls} loading={loading} error={error} />
+      </>}</DashboardData>
+    </div>
+  </DashboardLayout>;
 }
-
-export default DashboardPage
