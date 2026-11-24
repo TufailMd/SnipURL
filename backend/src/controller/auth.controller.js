@@ -11,13 +11,19 @@ import { sendResponse } from "../utils/responseHandler.js";
 const refreshCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   path: "/",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
 const setRefreshTokenCookie = (res, refreshToken) => {
   res.cookie("refreshToken", refreshToken, refreshCookieOptions);
+};
+
+const clearRefreshTokenCookie = (res) => {
+  const { maxAge, ...clearOptions } = refreshCookieOptions;
+
+  res.clearCookie("refreshToken", clearOptions);
 };
 
 // REGISTER
@@ -82,12 +88,7 @@ export const refreshToken = tryCatchWrapper(async (req, res) => {
 });
 
 export const logout = tryCatchWrapper(async (req, res) => {
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/",
-  });
+  clearRefreshTokenCookie(res);
 
   return sendResponse(res, 200, "Logout successful");
 });
